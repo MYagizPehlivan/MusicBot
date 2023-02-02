@@ -126,9 +126,11 @@ class MusicBot(discord.Client):
         super().__init__(intents=intents)
         self.http.user_agent = "MusicBot/%s" % BOTVERSION
         self.aiosession = aiohttp.ClientSession(
-            loop=self.loop, headers={"User-Agent": self.http.user_agent}
+            headers={"User-Agent": self.http.user_agent}
         )
 
+    
+    async def setup_hook(self):
         self.spotify = None
         if self.config._spotify:
             try:
@@ -136,8 +138,8 @@ class MusicBot(discord.Client):
                     self.config.spotify_clientid,
                     self.config.spotify_clientsecret,
                     aiosession=self.aiosession,
-                    loop=self.loop,
                 )
+                await self.spotify.get_token()
                 if not self.spotify.token:
                     log.warning("Spotify did not provide us with a token. Disabling.")
                     self.config._spotify = False
@@ -159,8 +161,9 @@ class MusicBot(discord.Client):
                     "The config did not have Spotify app credentials, attempting to use guest mode."
                 )
                 self.spotify = Spotify(
-                    None, None, aiosession=self.aiosession, loop=self.loop
+                    None, None, aiosession=self.aiosession
                 )
+                await self.spotify.get_token()
                 if not self.spotify.token:
                     log.warning("Spotify did not provide us with a token. Disabling.")
                     self.config._spotify = False
@@ -1034,7 +1037,7 @@ class MusicBot(discord.Client):
 
     async def send_typing(self, destination):
         try:
-            return await destination.trigger_typing()
+            return await destination.typing()
         except discord.Forbidden:
             log.warning(
                 "Could not send typing to {}, no permission".format(destination)
@@ -1358,7 +1361,7 @@ class MusicBot(discord.Client):
         e.set_author(
             name=self.user.name,
             url="https://github.com/Just-Some-Bots/MusicBot",
-            icon_url=self.user.avatar_url,
+            icon_url=self.user.avatar.url,
         )
         return e
 
@@ -4072,7 +4075,7 @@ class MusicBot(discord.Client):
                         content.description = "{} {}".format(
                             message.author.mention,
                             content.description
-                            if content.description is not discord.Embed.Empty
+                            if content.description is not None
                             else "",
                         )
                     else:

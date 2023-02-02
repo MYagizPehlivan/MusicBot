@@ -9,6 +9,7 @@ import logging
 import tempfile
 import traceback
 import subprocess
+import asyncio
 
 from shutil import disk_usage, rmtree
 from base64 import b64decode
@@ -379,8 +380,7 @@ def pyexec(pycom, *args, pycom2=None):
     pycom2 = pycom2 or pycom
     os.execlp(pycom, pycom2, *args)
 
-
-def main():
+async def main():
     # TODO: *actual* argparsing
 
     if "--no-checks" not in sys.argv:
@@ -413,7 +413,7 @@ def main():
             sh.terminator = ""
             sh.terminator = "\n"
 
-            m.run()
+            await m.start(m.config._login_token)
 
         except SyntaxError:
             log.exception("Syntax error (this is a bug, not your fault)")
@@ -482,4 +482,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

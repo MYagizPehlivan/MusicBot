@@ -13,17 +13,14 @@ class Spotify:
     OAUTH_TOKEN_URL = "https://accounts.spotify.com/api/token"
     API_BASE = "https://api.spotify.com/v1/"
 
-    def __init__(self, client_id, client_secret, aiosession=None, loop=None):
+    def __init__(self, client_id, client_secret, aiosession=None):
         self.client_id = client_id
         self.client_secret = client_secret
         self.guest_mode = client_id is None or client_secret is None
 
         self.aiosession = aiosession if aiosession else aiohttp.ClientSession()
-        self.loop = loop if loop else asyncio.get_event_loop()
 
         self.token = None
-
-        self.loop.run_until_complete(self.get_token())  # validate token
 
     async def get_track(self, uri):
         """Get a track's info from its URI"""
